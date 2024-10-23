@@ -7,3 +7,5 @@ Tasks 5-10 for lesson2_20241002. <br />
 Tasks 11-14 for lesson4_20241007. <br />
 Tasks 15-17 for lesson5_20241007. <br />
 Tasks 18-21 for lesson7_20241014. <br />
+Tasks 22-23 for lesson8_20241016. <br />
+Tasks 24-27 for lesson10_20241021. <br />
