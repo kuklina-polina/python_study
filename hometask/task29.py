@@ -50,20 +50,20 @@ try:
                             FROM  employees e, posts p , ranks r 
                             WHERE e.post = p.id AND e."rank" = r.id 
                             ORDER BY e.id)''')
-    query_researches = (f'''SELECT d.name, lt."type" , d.desc, array_agg(e.info)
+    query_employee_discipl = (f'''SELECT d.name, lt."type" , d.desc, array_agg(e.info)
                 FROM disciplines d, disciplines_lestypes dl , employees_disciplines ed, lesson_types lt , {query_emp_str_info} e  
                 WHERE ed.id_employee = e.id AND ed.id_discipline = dl.id  AND dl.id_discipline = d.id AND dl.id_lestype = lt.id 
                 GROUP BY d.name, lt."type" , d.desc;''')
-    print_result_sql(query_researches, [ "Дисциплина", "Тип занятия", "Описание дисциплины", "Задействованные сотрудники"])
+    print_result_sql(query_employee_discipl, [ "Дисциплина", "Тип занятия", "Описание дисциплины", "Задействованные сотрудники"])
 
     print("___________________________")
     print("Выдавать информацию о видах занятий, которые проводятся по выбранной дисциплине.")
 
-    query_researches = (f'''SELECT d.name, lt."type" 
+    query_type_les_discipl = (f'''SELECT d.name, lt."type" 
                         FROM disciplines d, disciplines_lestypes dl , lesson_types lt 
                         WHERE dl.id_discipline = d.id AND dl.id_lestype = lt.id
                         ORDER BY d.name, lt."type";''')
-    print_result_sql(query_researches, [ "Дисциплина", "Тип занятия"])
+    print_result_sql(query_type_les_discipl, [ "Дисциплина", "Тип занятия"])
     print("___________________________")
 
 except (Exception, Error) as error:
