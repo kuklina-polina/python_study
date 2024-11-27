@@ -10,18 +10,18 @@ import psycopg2
 import pandas as pd
 from psycopg2 import Error
 
-def print_result_sql(query, list_col_name):
+def print_result_sql(query, list_col_name, f="result_sql.csv"):
     cursor.execute(query)
     df = pd.DataFrame(cursor.fetchall(), columns=list_col_name)
+    df.to_csv(f, header=list_col_name, index=None, sep=';', mode='a', encoding="utf-8")
     print(df)
 try:
     connection = psycopg2.connect(user="polina",
                                   password="polina",
-                                  host="127.0.0.1",
+                                  host="localhost",
                                   port="5432",
                                   database="sci_dep")
     cursor = connection.cursor()
-
     print("___________________________")
     print("Выдавать сводную информацию обо всех работниках кафедры")
     query_employees = ('''SELECT e.id, e.lastname, e.name, e.patronymic, p.post_name, r.rank_name 
