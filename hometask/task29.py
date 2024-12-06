@@ -1,75 +1,55 @@
 # user: Polina Kuklina
-# date creation: 21.11.2024
+# date creation: 30.11.2024
 
-#todo: Выбрать из файла db_design.pdf вариант задания. Спроектировать ER модель на сайте
-# https://editor.ponyorm.com . Сгенерировать скрипт и создать схему для СУБД PostgreSQL.
-# Наполнить модель данными. Написать запросы к заданию на стороне клиента python.
-# Вариант 6. Кафедра
+#todo: Реализовать декоратор в котором нужно подсчитать кол-во вызовов декорированной
+# функции в процессе выполнения кода.
+# Выгрузить статистику подсчета в файл debug.log в формате: Название функции,
+# кол-во вызовов, дата-время последнего выполнения
+# Пример:
+# render, 10,  12.05.2022 12:00
+# show,    5,  12.05.2022 12:02
+# render, 15,  12.05.2022 12:07
+#
+# Декоратор должен применяться для различных функций с переменным числом аргументов.
+# Статистику вызовов необходимо записывать в файл при каждом запуске скрипта.
 
-import psycopg2
-import pandas as pd
-from psycopg2 import Error
+from datetime import datetime
 
-def print_result_sql(query, list_col_name, f="result_sql.csv"):
-    cursor.execute(query)
-    df = pd.DataFrame(cursor.fetchall(), columns=list_col_name)
-    df.to_csv(f, header=list_col_name, index=None, sep=';', mode='a', encoding="utf-8")
-    print(df)
-try:
-    connection = psycopg2.connect(user="polina",
-                                  password="polina",
-                                  host="localhost",
-                                  port="5432",
-                                  database="sci_dep")
-    cursor = connection.cursor()
-    print("___________________________")
-    print("Выдавать сводную информацию обо всех работниках кафедры")
-    query_employees = ('''SELECT e.id, e.lastname, e.name, e.patronymic, p.post_name, r.rank_name 
-                        FROM  employees e, posts p , ranks r
-                        WHERE e.post = p.id AND e.rank = r.id 
-                        ORDER BY e.id''')
-    print_result_sql(query_employees, ["id", "Фамилия", "Имя", "Отчество", "должность", "научное звание"])
+def decorator_counter(fn):
+    fn_name = fn.__name__
+    count = 0
+    datetime_ = None
 
-    print("___________________________")
-    print("Выдавать информацию о НИР")
-    query_emp_str_info = ('''(SELECT e.id, e.lastname || ' ' || e.name || ' ' || e.patronymic ||
-                            ' — ' || p.post_name || ' — ' || r.rank_name as info
-                            FROM  employees e, posts p , ranks r 
-                            WHERE e.post = p.id AND e."rank" = r.id 
-                            ORDER BY e.id)''')
-    query_researches = (f'''SELECT r.name, r."desc", array_agg(e.info) 
-                        FROM employees_researches er, researches r,  {query_emp_str_info}e  
-                        WHERE er.id_employee = e.id AND er.id_research = r.id
-                        GROUP BY r.name, r.desc''')
-    print_result_sql(query_researches, [ "Название", "Описание", "Задействованные сотрудники"])
+    def wrapper(*args, **kwargs):
+        nonlocal count, datetime_
+        count += 1
+        datetime_ = datetime.now().strftime("%d.%m.%Y %H:%M")
+        res = fn(*args, **kwargs)
+        return res
 
-    print("___________________________")
-    print("Выдавать информацию о преподавателе, ведущего указанный вид занятий по указанной дисциплине")
-    query_emp_str_info = ('''(SELECT e.id, e.lastname || ' ' || e.name || ' ' || e.patronymic ||
-                            ' — ' || p.post_name || ' — ' || r.rank_name as info
-                            FROM  employees e, posts p , ranks r 
-                            WHERE e.post = p.id AND e."rank" = r.id 
-                            ORDER BY e.id)''')
-    query_employee_discipl = (f'''SELECT d.name, lt."type" , d.desc, array_agg(e.info)
-                FROM disciplines d, disciplines_lestypes dl , employees_disciplines ed, lesson_types lt , {query_emp_str_info} e  
-                WHERE ed.id_employee = e.id AND ed.id_discipline = dl.id  AND dl.id_discipline = d.id AND dl.id_lestype = lt.id 
-                GROUP BY d.name, lt."type" , d.desc;''')
-    print_result_sql(query_employee_discipl, [ "Дисциплина", "Тип занятия", "Описание дисциплины", "Задействованные сотрудники"])
+    def save():
+        with open("debug.log", "a") as f:
+            f.write(f"{fn_name}, {count}, {datetime_}\n")
 
-    print("___________________________")
-    print("Выдавать информацию о видах занятий, которые проводятся по выбранной дисциплине.")
+    wrapper.save_info = save
+    return wrapper
 
-    query_type_les_discipl = (f'''SELECT d.name, lt."type" 
-                        FROM disciplines d, disciplines_lestypes dl , lesson_types lt 
-                        WHERE dl.id_discipline = d.id AND dl.id_lestype = lt.id
-                        ORDER BY d.name, lt."type";''')
-    print_result_sql(query_type_les_discipl, [ "Дисциплина", "Тип занятия"])
-    print("___________________________")
+@decorator_counter
+def add(a, b):
+    return a + b
 
-except (Exception, Error) as error:
-    print("Ошибка при работе с PostgreSQL", error)
-finally:
-    if connection:
-        cursor.close()
-        connection.close()
-        print("Соединение с PostgreSQL закрыто")
+@decorator_counter
+def invert(a):
+    return -a
+
+# Вызовы функций
+for i in range(0,25):
+    invert(i)
+add(2, 4)
+invert(5)
+invert(-7)
+add(8, 4)
+
+#Статистика записывается по всему файлу
+add.save_info()
+invert.save_info()
