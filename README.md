@@ -12,6 +12,8 @@ Tasks 24-27 for lesson10_20241021. <br />
 Tasks Numpy. <br />
 Tasks Pandas. <br />
 Tasks Pandas_Time-series. <br />
-Tasks 28 for lesson19. <br />
-Tasks 29 for lesson21. <br />
+Task 28 for lesson19. <br />
+Task 29_db for SQL topic. <br />
+Task 29 for lesson24. <br />
+Task 30 for lesson26. <br />
 
